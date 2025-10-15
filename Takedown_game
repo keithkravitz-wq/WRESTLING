@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Takedown Strategist</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS for a wrestling theme, ensuring mobile responsiveness */
+        :root {
+            --primary-red: #E53935;
+            --primary-blue: #1E88E5;
+            --neutral-bg: #F5F5F5;
+            --mat-green: #9CCC65;
+            --dark-text: #212121;
+            --light-text: #FFFFFF;
+            --font-inter: 'Inter', sans-serif;
+            --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --time-yellow: #FFC107;
+        }
+
+        body {
+            font-family: var(--font-inter);
+            background-color: var(--neutral-bg);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            width: 95%;
+            max-width: 800px;
+            background-color: var(--light-text);
+            border-radius: 16px;
+            box-shadow: var(--shadow-soft);
+            padding: 20px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #EEE;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: var(--dark-text);
+            margin: 0;
+        }
+        .header p {
+            font-size: 0.9rem;
+            color: #616161;
+            margin: 5px 0 0 0;
+        }
+
+        /* Scoreboard Styling */
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding: 15px 10px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #FFEBEE 0%, #E3F2FD 100%);
+            border: 1px solid #E0E0E0;
+        }
+
+        .score-card {
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .timer-card {
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .score-card h2, .timer-card h2 {
+            font-size: 1.1rem;
+            margin: 0 0 5px 0;
+            font-weight: 700;
+        }
+        .timer-card h2 {
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .player-score, .ai-score {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+        
+        #game-timer {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--time-yellow);
+            line-height: 1;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        }
+
+        .player-score { color: var(--primary-red); }
+        .ai-score { color: var(--primary-blue); }
+
+        /* Mat and Status Area */
+        .mat-area {
+            background-color: var(--mat-green);
+            padding: 20px;
+            border-radius: 10px;
+            border: 5px solid #689F38;
+            margin-bottom: 25px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        
+        #current-position {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            color: var(--light-text);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        #status-message {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--light-text);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+            margin: 0;
+        }
+
+        #action-log {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+            font-style: italic;
+        }
+
+        /* Controls Styling */
+        .controls h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--dark-text);
+            border-bottom: 1px dashed #BDBDBD;
+            padding-bottom: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .action-button {
+            background-color: #64B5F6;
+            color: var(--light-text);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px #42A5F5;
+            flex-grow: 1;
+            min-width: 150px;
+            max-width: 48%; /* For responsiveness */
+        }
+
+        /* Neutral System Buttons */
+        .action-button.system-snap { background-color: #FFB74D; box-shadow: 0 4px #FFA726; }
+        .action-button.system-elbow { background-color: #4CAF50; box-shadow: 0 4px #43A047; }
+        .action-button.system-underhook { background-color: #7986CB; box-shadow: 0 4px #5C6BC0; }
+        .action-button.system-advanced { background-color: #FF8A65; box-shadow: 0 4px #FF7043; }
+
+        /* Bottom/Mat Buttons */
+        .action-button.bottom-escape { background-color: var(--primary-red); box-shadow: 0 4px #D32F2F; }
+        .action-button.bottom-reversal { background-color: var(--primary-blue); box-shadow: 0 4px #1976D2; }
+
+        /* General Styling for Interaction */
+        .action-button:hover:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 3px;
+        }
+
+        .action-button:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal Styling */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--light-text);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 2rem;
+        }
+        
+        .modal-content.win h2 { color: var(--primary-red); }
+        .modal-content.loss h2 { color: var(--primary-blue); }
+
+        #reset-button {
+            margin-top: 20px;
+            background-color: #FF5722;
+            box-shadow: 0 4px #E64A19;
+            padding: 10px 25px;
+        }
+        
+        @media (min-width: 600px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            .game-container {
+                padding: 40px;
+            }
+            .action-button {
+                min-width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="header">
+        <h1>The Takedown Strategist</h1>
+        <p>First to 21 points wins or most points after 6 minutes.</p>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-card">
+            <h2 style="color: var(--primary-red);">YOU</h2>
+            <div class="player-score" id="player-score">0</div>
+        </div>
+        
+        <div class="timer-card">
+            <h2>TIME</h2>
+            <div id="game-timer">6:00</div>
+        </div>
+
+        <div class="score-card">
+            <h2 style="color: var(--primary-blue);">AI</h2>
+            <div class="ai-score" id="ai-score">0</div>
+        </div>
+    </div>
+
+    <div class="mat-area">
+        <span id="current-position">NEUTRAL</span>
+        <p id="status-message">Choose your Takedown System.</p>
+        <p id="action-log">Ready to wrestle...</p>
+    </div>
+
+    <!-- NEUTRAL POSITION CONTROLS (Takedown) -->
+    <div class="controls" id="neutral-controls">
+        <h3>1. NEUTRAL: Select Your Takedown System (3 Points)</h3>
+        <div class="button-group">
+            <button class="action-button system-snap" data-system="SNAP" onclick="selectAttackSystem('SNAP')">Level 1: SNAP</button>
+            <button class="action-button system-elbow" data-system="ELBOW" onclick="selectAttackSystem('ELBOW')">Level 2: ELBOW GRIP</button>
+            <button class="action-button system-underhook" data-system="UNDERHOOK" onclick="selectAttackSystem('UNDERHOOK')">Level 3: UNDERHOOK</button>
+            <button class="action-button system-advanced" data-system="ADVANCED" onclick="selectAttackSystem('ADVANCED')">Level 4: ADVANCED</button>
+        </div>
+    </div>
+
+    <!-- BOTTOM POSITION CONTROLS (Escape/Reversal) -->
+    <div class="controls" id="bottom-controls" style="display: none;">
+        <h3>2. BOTTOM: Select Your Action</h3>
+        <div class="button-group">
+            <button class="action-button bottom-escape" data-action="ESCAPE" onclick="selectBottomAction('ESCAPE')">ESCAPE (1 Point)</button>
+            <button class="action-button bottom-reversal" data-action="REVERSAL" onclick="selectBottomAction('REVERSAL')">REVERSAL (2 Points)</button>
+        </div>
+    </div>
+</div>
+
+<div id="game-end-modal" class="modal">
+    <div class="modal-content">
+        <h2 id="modal-title"></h2>
+        <p id="modal-message"></p>
+        <button id="reset-button" class="action-button" onclick="resetGame()">Start New Tournament</button>
+    </div>
+</div>
+
+<script>
+    // --- Game Data and Rules ---
+    const SCORE_TAKEDOWN = 3;
+    const SCORE_ESCAPE = 1;
+    const SCORE_REVERSAL = 2;
+    const WINNING_SCORE = 21;
+    const GAME_DURATION_SECONDS = 6 * 60; // 6 minutes
+
+    const SYSTEMS = {
+        SNAP: {
+            name: "SNAP System",
+            moves: ["SNAP DOWN SPIN", "SNAP TO DOUBLE", "SNAP FRONT HEADLOCK TO CRADLE"],
+            weakness: "HEAD_CONTROL", // Weak to strong tie-ups/control
+            strength: "NEUTRAL_POSTURE", // Strong against passive defense
+            takedownChance: 0.5 // Base Takedown chance
+        },
+        ELBOW: {
+            name: "ELBOW GRIP System",
+            moves: ["INSIDE ELBOW PASS", "ELBOW CONTROL HIGH CROTCH SINGLE", "ELBOW CONTROL DUMP"],
+            weakness: "NEUTRAL_POSTURE", // Weak to quick breaks/neutral reset
+            strength: "HEAD_CONTROL", // Strong against opponents trying to tie up
+            takedownChance: 0.4
+        },
+        UNDERHOOK: {
+            name: "UNDERHOOK System",
+            moves: ["UNDERHOOK THROW BY", "UNDERHOOK HIGH CROTCH", "UNDERHOOK WHIP OVER"],
+            weakness: "SPRAWL", // Weak to good hip position/sprawl
+            strength: "SPRAWL", // Strong against opponents leaning forward
+            takedownChance: 0.6
+        },
+        ADVANCED: {
+            name: "ELBOW CONTROL ADVANCED",
+            moves: ["ELBOW CONTROL SLIDE BY", "RUSSIAN ARM DRAG", "INSIDE & OUTSIDE FIREMANS"],
+            weakness: "SPRAWL", // High risk moves are often countered by strong defense
+            strength: "ELBOW", // Medium strength, high risk/reward
+            takedownChance: 0.3
+        }
+    };
+
+    const DEFENSES = {
+        SPRAWL: { name: "SPRAWL", counter: "UNDERHOOK", weakness: "HEAD_CONTROL" },
+        HEAD_CONTROL: { name: "HEAD & BODY CONTROL", counter: "SNAP", weakness: "ELBOW" },
+        NEUTRAL_POSTURE: { name: "NEUTRAL POSTURE/RESET", counter: "ELBOW", weakness: "UNDERHOOK" }
+    };
+    
+    const BOTTOM_ACTIONS = {
+        ESCAPE: {
+            name: "ESCAPE",
+            description: "A quick move to break contact and return to neutral.",
+            successChance: 0.6,
+            points: SCORE_ESCAPE,
+            nextPosition: 'NEUTRAL'
+        },
+        REVERSAL: {
+            name: "REVERSAL",
+            description: "A major maneuver to switch positions and gain control.",
+            successChance: 0.3,
+            points: SCORE_REVERSAL,
+            nextPosition: 'BOTTOM' // Player is now on top (AI is bottom)
+        }
+    };
+
+    // --- State Variables ---
+    let playerScore = 0;
+    let aiScore = 0;
+    let isGameRunning = true;
+    let playerSystemChoice = null;
+    let currentPosition = 'NEUTRAL'; // NEUTRAL, BOTTOM
+    let timerInterval = null;
+    let timeLeft = GAME_DURATION_SECONDS;
+
+
+    // --- DOM Elements ---
+    const playerScoreEl = document.getElementById('player-score');
+    const aiScoreEl = document.getElementById('ai-score');
+    const statusMessageEl = document.getElementById('status-message');
+    const actionLogEl = document.getElementById('action-log');
+    const neutralControlsEl = document.getElementById('neutral-controls');
+    const bottomControlsEl = document.getElementById('bottom-controls');
+    const positionEl = document.getElementById('current-position');
+    const timerEl = document.getElementById('game-timer');
+    const modalEl = document.getElementById('game-end-modal');
+    const modalTitleEl = document.getElementById('modal-title');
+    const modalMessageEl = document.getElementById('modal-message');
+
+    // --- Game Flow Functions ---
+
+    /**
+     * Updates the score and checks for game over.
+     */
+    function updateScore() {
+        playerScoreEl.textContent = playerScore;
+        aiScoreEl.textContent = aiScore;
+        checkGameOver();
+    }
+    
+    /**
+     * Updates the UI to show the correct position controls.
+     */
+    function updateControls() {
+        positionEl.textContent = currentPosition;
+        if (currentPosition === 'NEUTRAL') {
+            neutralControlsEl.style.display = 'block';
+            bottomControlsEl.style.display = 'none';
+            statusMessageEl.textContent = "Choose your Takedown System (Neutral Position).";
+        } else { // BOTTOM
+            neutralControlsEl.style.display = 'none';
+            bottomControlsEl.style.display = 'block';
+            statusMessageEl.textContent = "You are on the bottom. Choose ESCAPE or REVERSAL.";
+        }
+    }
+
+    /**
+     * Starts the 6-minute countdown timer.
+     */
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const updateTimer = () => {
+            if (timeLeft <= 0) {
+                stopTimer();
+                checkGameOver(true); // Force check at time end
+                return;
+            }
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerEl.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        };
+
+        timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call to set the time immediately
+    }
+    
+    /**
+     * Stops the timer.
+     */
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    /**
+     * Checks if a winner has been determined (Score or Time limit).
+     * @param {boolean} [timeExpired=false] - Whether the timer ran out.
+     */
+    function checkGameOver(timeExpired = false) {
+        if (!isGameRunning) return;
+
+        let winner = null;
+        let reason = "";
+
+        if (playerScore >= WINNING_SCORE) {
+            winner = 'Player';
+            reason = `You reached ${WINNING_SCORE} points (Technical Fall)!`;
+        } else if (aiScore >= WINNING_SCORE) {
+            winner = 'AI';
+            reason = `The AI reached ${WINNING_SCORE} points (Technical Fall)!`;
+        } else if (timeExpired) {
+            if (playerScore > aiScore) {
+                winner = 'Player';
+                reason = `Time expired! You win by decision (${playerScore} - ${aiScore}).`;
+            } else if (aiScore > playerScore) {
+                winner = 'AI';
+                reason = `Time expired! The AI wins by decision (${aiScore} - ${playerScore}).`;
+            } else {
+                winner = 'Draw';
+                reason = `Time expired! It's a tie (${playerScore} - ${aiScore}).`;
+            }
+        }
+        
+        if (winner) {
+            stopTimer();
+            const title = winner === 'Player' ? "VICTORY!" : winner === 'AI' ? "DEFEAT..." : "TIME EXPIRED";
+            endGame(title, reason, winner === 'Player');
+        }
+    }
+
+    /**
+     * Ends the game and shows the modal.
+     * @param {string} title - Title for the modal.
+     * @param {string} message - Message for the modal.
+     * @param {boolean} isWin - True if the player won.
+     */
+    function endGame(title, message, isWin) {
+        isGameRunning = false;
+        modalTitleEl.textContent = title;
+        modalMessageEl.textContent = message;
+        modalEl.style.display = 'flex';
+        
+        // Apply winner/loser class for styling
+        modalTitleEl.parentElement.classList.toggle('win', isWin);
+        modalTitleEl.parentElement.classList.toggle('loss', !isWin);
+    }
+
+    /**
+     * Resets the game state.
+     */
+    function resetGame() {
+        playerScore = 0;
+        aiScore = 0;
+        isGameRunning = true;
+        playerSystemChoice = null;
+        currentPosition = 'NEUTRAL';
+        timeLeft = GAME_DURATION_SECONDS;
+        
+        updateScore();
+        updateControls();
+        startTimer();
+        modalEl.style.display = 'none';
+        actionLogEl.textContent = "Ready to wrestle...";
+    }
+    
+    /**
+     * Player selects an attack system from Neutral.
+     * @param {string} systemKey - The key of the chosen system (SNAP, ELBOW, etc.)
+     */
+    function selectAttackSystem(systemKey) {
+        if (!isGameRunning || currentPosition !== 'NEUTRAL') return;
+
+        playerSystemChoice = SYSTEMS[systemKey];
+        const moveIndex = Math.floor(Math.random() * playerSystemChoice.moves.length);
+        const moveName = playerSystemChoice.moves[moveIndex];
+
+        statusMessageEl.textContent = `You chose the ${playerSystemChoice.name}! Attacking with: ${moveName}.`;
+        actionLogEl.textContent = "The AI is preparing its Defense...";
+
+        // Disable controls during AI processing
+        Array.from(neutralControlsEl.querySelectorAll('.action-button')).forEach(btn => btn.disabled = true);
+
+        // Simulate AI choosing its defense
+        setTimeout(() => {
+            simulateAIDefense();
+        }, 1500);
+    }
+    
+    /**
+     * AI selects a defense and the turn is resolved.
+     */
+    function simulateAIDefense() {
+        // AI logic: 60% chance to pick a smart counter (the primary weakness of player's system)
+        const defenseKeys = Object.keys(DEFENSES);
+        let aiDefenseKey;
+        
+        if (Math.random() < 0.6) {
+            aiDefenseKey = playerSystemChoice.weakness;
+        } else {
+            // 40% chance to pick a random other defense
+            const randomIndex = Math.floor(Math.random() * defenseKeys.length);
+            aiDefenseKey = defenseKeys[randomIndex];
+        }
+        
+        const aiDefense = DEFENSES[aiDefenseKey];
+        resolveNeutralTurn(aiDefense);
+    }
+    
+    /**
+     * Resolves the Neutral attack vs. defense outcome.
+     * @param {object} aiDefense - The defense object chosen by the AI.
+     */
+    function resolveNeutralTurn(aiDefense) {
+        const attackSystem = playerSystemChoice.name;
+        const playerSystemKey = Object.keys(SYSTEMS).find(key => SYSTEMS[key].name === attackSystem);
+
+        let resultMessage = `The AI responded with a ${aiDefense.name}. `;
+        let isTakedown = false;
+
+        // Check for direct counter: If AI's defense directly counters the player's system's primary weakness
+        if (aiDefense.counter === playerSystemKey) {
+            // SNAP (Counter: HEAD_CONTROL), AI used HEAD_CONTROL -> STALEMATE (NO POINTS)
+            resultMessage += `The AI's **${aiDefense.name}** perfectly neutralized your ${attackSystem}. **Stalemate!**`;
+        } 
+        // Check for vulnerability: If AI's defense is weak to the player's system's primary strength
+        else if (aiDefense.weakness === playerSystemKey) {
+            // ELBOW, AI used HEAD_CONTROL (weakness: ELBOW) -> TAKEDOWN (3 POINTS)
+            isTakedown = true;
+            resultMessage += `Your **${attackSystem}** exploited the AI's weak ${aiDefense.name}! **TAKEDOWN!**`;
+        }
+        // General chance based on move's inherent chance (if no direct counter/strength applies)
+        else if (Math.random() < playerSystemChoice.takedownChance) {
+            isTakedown = true;
+            resultMessage += `Your ${attackSystem} was executed with great technique, overwhelming the AI's ${aiDefense.name}. **TAKEDOWN!**`;
+        } else {
+            // Defender was successful at defending due to general strategy/luck
+             resultMessage += `The AI successfully defended against your ${attackSystem} with a timely ${aiDefense.name}. **No Score!**`;
+        }
+        
+        // Apply points and update position
+        if (isTakedown) {
+            playerScore += SCORE_TAKEDOWN;
+            statusMessageEl.textContent = `${SCORE_TAKEDOWN} Points to YOU! (Takedown)`;
+            currentPosition = 'BOTTOM'; // Player gets TD, so next turn, player is on the bottom
+        } else {
+             statusMessageEl.textContent = "No points awarded. Back to Neutral!";
+             currentPosition = 'NEUTRAL';
+        }
+
+        actionLogEl.innerHTML = resultMessage;
+        playerSystemChoice = null; // Reset for the next turn
+        updateScore();
+
+        // Pause before enabling controls again
+        setTimeout(() => {
+            if (isGameRunning) {
+                Array.from(neutralControlsEl.querySelectorAll('.action-button')).forEach(btn => btn.disabled = false);
+                updateControls();
+            }
+        }, 3000);
+    }
+    
+    /**
+     * Player selects an action from the Bottom position (Escape or Reversal).
+     * @param {string} actionKey - ESCAPE or REVERSAL.
+     */
+    function selectBottomAction(actionKey) {
+        if (!isGameRunning || currentPosition !== 'BOTTOM') return;
+        
+        const action = BOTTOM_ACTIONS[actionKey];
+        statusMessageEl.textContent = `You attempt a ${action.name}!`;
+        actionLogEl.textContent = "The AI (on top) is preparing its counter...";
+
+        // Disable controls during AI processing
+        Array.from(bottomControlsEl.querySelectorAll('.action-button')).forEach(btn => btn.disabled = true);
+
+        // Simulate AI's defense/ride
+        setTimeout(() => {
+            simulateAITopDefense(action);
+        }, 1500);
+    }
+    
+    /**
+     * Simulates the AI's success/failure in maintaining control against the player's bottom action.
+     * @param {object} playerAction - The action chosen by the player (ESCAPE or REVERSAL).
+     */
+    function simulateAITopDefense(playerAction) {
+        let resultMessage = `The AI tries to ride you out. `;
+        let score = 0;
+        let isSuccess = false;
+
+        // Success chance: 60% for Escape, 30% for Reversal (Reversals are harder)
+        if (Math.random() < playerAction.successChance) {
+            isSuccess = true;
+            score = playerAction.points;
+            playerScore += score;
+            currentPosition = playerAction.nextPosition; // NEUTRAL for Escape, BOTTOM for Reversal
+            
+            resultMessage += `Your **${playerAction.name}** was successful!`;
+        } else {
+            // AI held control. For simplicity, next position is NEUTRAL (referee calls stalemate/out of bounds)
+            resultMessage += `The AI's strong ride prevented your ${playerAction.name}. No Score!`;
+            currentPosition = 'NEUTRAL';
+        }
+        
+        statusMessageEl.textContent = isSuccess ? `${score} Points to YOU! (${playerAction.name})` : "No points awarded. Back to Neutral!";
+        actionLogEl.innerHTML = resultMessage;
+        updateScore();
+        
+        // Pause before enabling controls again
+        setTimeout(() => {
+            if (isGameRunning) {
+                Array.from(bottomControlsEl.querySelectorAll('.action-button')).forEach(btn => btn.disabled = false);
+                updateControls();
+            }
+        }, 3000);
+    }
+
+    // Initialize the game state on load
+    document.addEventListener('DOMContentLoaded', resetGame);
+
+</script>
+
+</body>
+</html>
